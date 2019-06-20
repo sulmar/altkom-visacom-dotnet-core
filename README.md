@@ -148,3 +148,17 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
    app.UseRouter(routeBuilder.Build());
 }
 ~~~
+
+
+
+## Docker
+
+- Uruchomienie pierwszego kontenera
+~~~ bash
+docker run ubuntu /bin/echo 'Hello world'
+~~~
+
+- Uruchomienie w trybie interaktywnym
+~~~ bash
+docker run -i -t --rm ubuntu /bin/bash
+~~~
