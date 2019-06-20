@@ -63,17 +63,16 @@ RequestAcceptMiddleware.cs
    Startup.cs
  
   
-  ~~~ csharp 
-  public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-  {
-       app.UseMiddleware<RequestAcceptMiddleware>();
-       
-  }
+~~~ csharp 
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+     app.UseMiddleware<RequestAcceptMiddleware>();
+}
+~~~
   
+- Zastosowanie metody rozszerzającej
   
-  - Zastosowanie metody rozszerzającej
-  
-  RequestAcceptMiddlewareExtensions.cs
+RequestAcceptMiddlewareExtensions.cs
   
 ~~~ csharp 
   public static class RequestAcceptMiddlewareExtensions
