@@ -263,6 +263,141 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 }
 ~~~
 
+## REST API
+
+| Akcja  | Opis                  |
+|--------|-----------------------|
+| GET    | Pobierz               |
+| POST   | Utwórz                |
+| PUT    | Zamień                |
+| DELETE | Usuń                  |
+| PATCH  | Zmodyfikuj częściowo  |
+| HEAD   | Czy istnieje          |
+
+
+
+### Włączenie obsługi XML
+
+Plik Startup.cs
+
+~~~ csharp
+ public void ConfigureServices(IServiceCollection services)
+ {
+     services
+         .AddMvc(options => options.RespectBrowserAcceptHeader = true)
+         .AddXmlSerializerFormatters();
+ }
+~~~
+
+
+### Wyłączenie generowania wartości null w jsonie
+
+Plik Startup.cs
+
+~~~ csharp
+
+public void ConfigureServices(IServiceCollection services)
+{
+  services
+    .AddJsonOptions(options =>
+    {
+        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore;            
+    });
+}
+~~~
+
+### Serializacja enum jako tekst 
+
+Plik Startup.cs
+
+
+~~~ csharp
+
+public void ConfigureServices(IServiceCollection services)
+{
+  services
+    .AddJsonOptions(options =>
+     {
+         options.SerializerSettings.Converters.Add(new StringEnumConverter(camelCaseText: true));                       
+     });
+}
+
+~~~
+
+### Zapobieganie cyklicznej serializacji
+
+Plik Startup.cs
+
+~~~ csharp
+public void ConfigureServices(IServiceCollection services)
+{
+  services
+      .AddJsonOptions(options =>
+         {
+             options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+         });
+   } 
+~~~
+
+
+## Pobieranie konfiguracji
+
+Plik Startup.cs
+
+~~~ csharp
+ public Startup(IHostingEnvironment env)
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)                
+                .AddJsonFile("appsettings.json", optional: false)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+                .AddXmlFile("appsettings.xml");
+
+            Configuration = builder.Build();
+        }
+~~~
+
+
+
+### Konfiguracja YAML
+
+- Instalacja
+~~~ bash
+dotnet add package NetEscapades.Configuration.Yaml
+~~~
+
+- Przykładowy plik
+~~~ 
+test: Hello YAML
+
+tunnels:
+  httpbin:
+    proto: http
+~~~ 
+
+- Konfiguracja
+~~~ csharp
+public Startup(IHostingEnvironment env)
+{      
+    var builder = new ConfigurationBuilder()
+        .SetBasePath(env.ContentRootPath)
+        .AddYamlFile("appsettings.yml", optional: false)
+        .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+        .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
+        
+        .AddEnvironmentVariables();
+
+    Configuration = builder.Build();
+}
+~~~
+ 
+- Pobranie konfiguracji
+
+~~~ csharp
+string value = Configuration["test"];
+string proto = Configuration["tunnels:httpbin:proto"];
+~~~
+
 ## Autentyfikacja
 
 ### Basic
