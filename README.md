@@ -117,8 +117,51 @@ public class MyRouter : IRouter
     }
 ~~~
 
+## Mapowanie tras
 
-## Mapy
+Startup.cs
+
+~~~ csharp
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+
+  app.Map("/sensors", HandleMapTest1);
+
+  app.Map("/devices", node =>
+  {
+      node.Map("/active", HandleMapTest2);
+      node.Map("/nonactive", HandleMapTest3);
+  } );
+}
+
+
+private static void HandleMapTest1(IApplicationBuilder app)
+        {
+            app.Run(async context =>
+            {
+                await context.Response.WriteAsync("Map Test 1");
+            });
+        }
+
+        private static void HandleMapTest2(IApplicationBuilder app)
+        { 
+            app.Run(async context =>
+            {
+                await context.Response.WriteAsync("Active devices");
+            });
+        }
+
+     private static void HandleMapTest3(IApplicationBuilder app)
+        { 
+            app.Run(async context =>
+            {
+                await context.Response.WriteAsync("Non active devices");
+            });
+        }
+
+~~~
+
+## Mapowanie metod
 
 Instalacja
 ~~~ bash
