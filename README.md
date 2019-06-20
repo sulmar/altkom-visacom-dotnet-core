@@ -674,6 +674,36 @@ public async Task RemoveFromGroup(string groupName)
 
 ~~~
 
+## Publikacja aplikacji
+
+
+* Framework-dependent deployments (FDD)
+~~~ bash 
+dotnet publish -c Release
+~~~
+
+* Self-contained deployments (SCD)
+~~~ bash
+dotnet publish -c Release -r <IDENTYFIKATOR_ RODOWISKA_URUCHOMIENIOWEGO>
+~~~
+
+* Framework-dependent executables (FDE)
+~~~ bash
+dotnet publish -c Release -r <IDENTYFIKATOR_ RODOWISKA_URUCHOMIENIOWEGO> --self-contained false
+~~~
+
+### Identyfikatory
+- win10-x64
+- linux-x64
+- osx-x64
+
+Przykłady
+
+~~~ bash
+dotnet publish -c Release -r win10-x64
+dotnet publish -c Release -r linux-x64
+dotnet publish -c Release -r osx-x64
+~~~
 
 
 ## Docker
