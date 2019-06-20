@@ -61,6 +61,11 @@ Startup.cs
 
 ## Router
 
+Instalacja
+~~~ bash
+dotnet add package Microsoft.AspNetCore.Routing;
+~~~
+
 Startup.cs
 
 ~~~ csharp
@@ -75,6 +80,8 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 
    routeBuilder.Routes.Add(new Route(new MyRouter(), "sensors/{number:int}",
        app.ApplicationServices.GetService<IInlineConstraintResolver>()));
+       
+   app.UseRouter(routeBuilder.Build());
 }
 ~~~
 
