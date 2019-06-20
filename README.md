@@ -94,7 +94,7 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 }
 ~~~
   
-## OWIN
+### OWIN
 
 Startup.cs
 
@@ -130,7 +130,7 @@ Startup.cs
 ~~~
 
 
-## Router
+### Router
 
 Instalacja
 ~~~ bash
@@ -188,7 +188,7 @@ public class MyRouter : IRouter
     }
 ~~~
 
-## Mapowanie tras
+### Mapowanie tras
 
 Startup.cs
 
@@ -232,7 +232,7 @@ private static void HandleMapTest1(IApplicationBuilder app)
 
 ~~~
 
-## Mapowanie metod
+### Mapowanie metod
 
 Instalacja
 ~~~ bash
