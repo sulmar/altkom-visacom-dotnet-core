@@ -116,3 +116,35 @@ public class MyRouter : IRouter
         }
     }
 ~~~
+
+
+## Mapy
+
+Instalacja
+~~~ bash
+dotnet add package Microsoft.AspNetCore.Routing;
+~~~
+
+Startup.cs
+
+~~~ csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddRouting();
+}
+
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+   var routeBuilder = new RouteBuilder(app);
+
+ routeBuilder.MapGet("", request => request.Response.WriteAsync("Hello World"));
+
+ routeBuilder.MapGet("sensors", request => request.Response.WriteAsync("Sensors"));
+
+ routeBuilder.MapGet("sensors/{id:int}", request => request.Response.WriteAsync($"Sensor id {request.GetRouteValue("id")}"));
+
+  routeBuilder.MapPost("post", request => request.Response.WriteAsync("Created"));
+       
+   app.UseRouter(routeBuilder.Build());
+}
+~~~
