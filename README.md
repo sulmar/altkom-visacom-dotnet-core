@@ -230,6 +230,359 @@ static async Task Main(string[] args)
 
 ~~~
 
+## Kondycja
+
+### Instalacja
+
+~~~ bash
+ dotnet add package Microsoft.AspNetCore.Diagnostics.HealthChecks
+~~~
+
+
+### Konfiguracja
+
+Startup.cs
+
+~~~ csharp 
+public void ConfigureServices(IServiceCollection services)
+{
+   services.AddHealthChecks();
+}
+
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+ app.UseHealthChecks("/health");
+}
+
+~~~
+
+### Dodanie własnej obsługi
+
+RandomHealthCheck.cs
+
+~~~ csharp
+
+public class RandomHealthCheck  : IHealthCheck
+    {
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            if (DateTime.UtcNow.Minute % 2 == 0)
+            {
+                return Task.FromResult(HealthCheckResult.Healthy());
+            }
+
+            return Task.FromResult(HealthCheckResult.Unhealthy(description: "failed"));
+        }
+    }
+~~~
+
+Startup.cs
+
+~~~ csharp
+
+public void ConfigureServices(IServiceCollection services)
+{
+ services.AddHealthChecks()
+             .AddCheck<RandomHealthCheck>("random");
+}
+
+~~~
+
+### Dashboard
+
+Instalacja
+
+~~~ bash
+dotnet add package AspNetCore.HealthChecks.UI
+~~~
+          
+
+Startup.cs
+
+~~~ csharp
+
+public void ConfigureServices(IServiceCollection services)
+{
+   services.AddHealthChecksUI();
+}
+
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+    app.UseHealthChecks("/health",  new HealthCheckOptions()
+      {
+          Predicate = _ => true,
+          ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+      });
+}
+~~~
+
+appsettings.json
+
+~~~ json
+
+ "HealthChecks-UI": {
+    "HealthChecks": [
+      {
+        "Name": "Http and UI on single project",
+        "Uri": "http://localhost:5000/health"
+      }
+    ],
+    "Webhooks": [],
+    "EvaluationTimeOnSeconds": 10,
+    "MinimumSecondsBetweenFailureNotifications": 60
+  }
+  
+~~~
+
+Wskazówka: Przejdź na http://localhost:5000/healthchecks-ui aby zobaczyc panel
+
+### Kondycja SQL Server
+
+~~~ bash
+dotnet add package AspNetCore.HealthChecks.SqlServer 
+~~~
+
+Startup.cs
+
+~~~ csharp
+
+public void ConfigureServices(IServiceCollection services)
+{
+ services.AddHealthChecksUI()
+    .AddSqlServer(Configuration.GetConnectionStrings("MyConnection");
+}
+
+~~~
+
+
+### Kondycja DbContext
+
+~~~ bash
+dotnet add package Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore
+~~~
+
+Startup.cs
+
+~~~ csharp
+
+public void ConfigureServices(IServiceCollection services)
+{
+  services.AddDbContext<AppDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("MyConnection"));
+            
+    services.AddHealthChecks()
+            .AddDbContextCheck<AppDbContext>();
+
+}
+
+~~~
+
+## Signal-R
+
+### Utworzenie huba
+
+CustomersHub.cs
+
+~~~ csharp
+
+public class CustomersHub : Hub
+{
+     public override Task OnConnectedAsync()
+     {
+         return base.OnConnectedAsync();
+     }
+
+     public Task CustomerAdded(Customer customer)
+     {
+         return this.Clients.Others.SendAsync("Added", customer);
+     } 
+}
+~~~
+
+### Utworzenie odbiorcy
+
+~~~ bash
+dotnet add package Microsoft.AspNetCore.SignalR.Client
+~~~
+
+Program.cs
+
+~~~ csharp
+static async Task Main(string[] args)
+{
+     const string url = "http://localhost:5000/hubs/customers";
+
+    HubConnection connection = new HubConnectionBuilder()
+        .WithUrl(url)
+        .Build();
+
+    Console.WriteLine("Connecting...");
+
+    await connection.StartAsync();
+
+    Console.WriteLine("Connected.");
+
+    connection.On<Customer>("Added",
+        customer => Console.WriteLine($"Received customer {customer.FirstName} {customer.LastName}"));
+
+    }
+}
+~~~
+
+### Utworzenie nadawcy
+
+~~~ bash
+dotnet add package Microsoft.AspNetCore.SignalR.Client
+~~~
+
+Program.cs
+
+~~~ csharp
+static async Task Main(string[] args)
+{
+    const string url = "http://localhost:5000/hubs/customers";
+
+    HubConnection connection = new HubConnectionBuilder()
+        .WithUrl(url)
+        .Build();
+
+    Console.WriteLine("Connecting...");
+    await connection.StartAsync();
+    Console.WriteLine("Connected.");          
+    await connection.SendAsync("CustomerAdded", customer);
+    Console.WriteLine($"Sent {customer.FirstName} {customer.LastName}");
+}
+
+~~~
+
+
+### Wstrzykiwanie huba
+
+CustomersController.cs
+
+~~~ csharp
+
+ public class CustomersController : ControllerBase
+ {
+    private readonly IHubContext<CustomersHub> hubContext;
+   
+    public CustomersController(IHubContext<CustomersHub> hubContext)
+     {
+         this.hubContext = hubContext;
+     }
+     
+    [HttpPost]
+     public async Task<IActionResult> Post( Customer customer)
+     {
+         customersService.Add(customer);
+
+         await hubContext.Clients.All.SendAsync("Added", customer);
+
+         return CreatedAtRoute(new { Id = customer.Id }, customer);
+     }
+ }
+
+~~~
+
+### Autentykacja
+
+Program.cs
+
+~~~ csharp
+static async Task Main(string[] args)
+{
+    const string url = "http://localhost:5000/hubs/customers";
+
+    var username = "marcin";
+    var password = "12345";
+
+    var credentialBytes = Encoding.UTF8.GetBytes($"{username}:{password}");
+    var credentials = Convert.ToBase64String(credentialBytes);
+
+    string parameter = $"Basic {credentials}";
+
+    HubConnection connection = new HubConnectionBuilder()
+        .WithUrl(url, options => options.Headers.Add("Authorization", parameter))
+        .Build();
+
+    Console.WriteLine("Connecting...");
+    await connection.StartAsync();
+    Console.WriteLine("Connected.");          
+    await connection.SendAsync("CustomerAdded", customer);
+    Console.WriteLine($"Sent {customer.FirstName} {customer.LastName}");
+}
+
+~~~
+
+
+### Utworzenie silnie typowanego huba
+
+CustomersHub.cs
+
+~~~ csharp
+
+public interface ICustomersHub
+{
+    Task Added(Customer customer);
+}
+
+public class CustomersHub : Hub<ICustomersHub>
+{
+     public Task CustomerAdded(Customer customer)
+     {
+         return this.Clients.Others.Added(customer);
+     } 
+}
+~~~
+
+CustomersController.cs
+
+~~~ csharp
+
+ public class CustomersController : ControllerBase
+ {
+    private readonly IHubContext<CustomersHub, ICustomersHub> hubContext;
+   
+    public CustomersController(IHubContext<CustomersHub, ICustomersHub> hubContext)
+     {
+         this.hubContext = hubContext;
+     }
+     
+    [HttpPost]
+     public async Task<IActionResult> Post( Customer customer)
+     {
+         customersService.Add(customer);
+
+         await hubContext.Clients.All.Added(customer);
+
+         return CreatedAtRoute(new { Id = customer.Id }, customer);
+     }
+ }
+
+~~~
+
+
+### Grupy
+
+
+~~~ csharp
+
+public async Task AddToGroup(string groupName)
+{
+    await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
+
+    await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has joined the group {groupName}.");
+}
+
+public async Task RemoveFromGroup(string groupName)
+{
+    await Groups.RemoveFromGroupAsync(Context.ConnectionId, groupName);
+
+    await Clients.Group(groupName).SendAsync("Send", $"{Context.ConnectionId} has left the group {groupName}.");
+}
+
+~~~
+
+
 
 ## Docker
 
