@@ -205,3 +205,41 @@ docker run ubuntu /bin/echo 'Hello world'
 ~~~ bash
 docker run -i -t --rm ubuntu /bin/bash
 ~~~
+
+## Asynchroniczność
+
+### Asynchroniczna metoda _Main()_ w C# 7.0
+
+Program.cs
+
+~~~ csharp
+
+static void Main(string[] args) => MainAsync(args).GetAwaiter().GetResult();
+
+        static async Task MainAsync(string[] args)
+        {
+                await DoWorkAsync();
+         }
+~~~
+
+### Asynchroniczna metoda _Main()_ od C# 7.2
+
+Project.csproj
+
+~~~ xml
+
+<PropertyGroup>
+  <LangVersion>latest</LangVersion>
+</PropertyGroup>
+ 
+~~~
+
+Program.cs
+
+~~~ csharp
+static async Task Main(string[] args)
+ {
+     await DoWorkAsync();
+ }
+
+~~~
