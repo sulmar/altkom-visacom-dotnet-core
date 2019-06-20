@@ -57,3 +57,55 @@ Startup.cs
 }
 
 ~~~
+
+
+## Router
+
+Startup.cs
+
+~~~ csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddRouting();
+}
+
+public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+{
+   var routeBuilder = new RouteBuilder(app);
+
+   routeBuilder.Routes.Add(new Route(new MyRouter(), "sensors/{number:int}",
+       app.ApplicationServices.GetService<IInlineConstraintResolver>()));
+}
+~~~
+
+MyRouter.cs
+
+~~~ csharp
+
+public class MyRouter : IRouter
+    {
+        public VirtualPathData GetVirtualPath(VirtualPathContext context)
+        {
+            return null;
+        }
+
+        public Task RouteAsync(RouteContext context)
+        {
+            var number = context.RouteData.Values["number"] as string;
+            
+            if (string.IsNullOrEmpty(number)) {
+                return Task.FromResult(0);
+            }
+
+            if (!Int32.TryParse(number, out int value)) {
+                return Task.FromResult(0);
+            }
+
+            var requestPath = context.HttpContext.Request.Path;
+
+            context.Handler = async c => await c.Response.WriteAsync($"Number = ({number})");
+
+            return Task.FromResult(0);      
+        }
+    }
+~~~
