@@ -263,6 +263,27 @@ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
 }
 ~~~
 
+## Autentyfikacja
+
+### Basic
+Headers 
+
+| Key   | Value  |
+|---|---|
+| Authorization | Basic {Base64(login:password)}  |
+
+### Token
+Headers 
+
+| Key   | Value  |
+|---|---|
+| Authorization | Bearer {token}  |
+
+
+### JWT
+
+https://github.com/sulmar/dotnet-core-jwt
+
 ## Asynchroniczność
 
 ### Asynchroniczna metoda _Main()_ w C# 7.0
