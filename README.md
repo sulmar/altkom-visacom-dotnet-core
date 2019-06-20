@@ -22,3 +22,38 @@ Przykłady ze szkolenia .NET Core 2.2 dla zaawansowanych
 - ``` dotnet publish -c Release -r win10-x64``` - publikacja aplikacji dla Windows
 - ``` dotnet publish -c Release -r linux-x64``` - publikacja aplikacji dla Linux
 - ``` dotnet publish -c Release -r osx-x64``` - publikacja aplikacji dla MacOS
+
+## OWIN
+
+Startup.cs
+
+~~~ csharp
+ public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+  {
+      app.UseOwin(pipeline => pipeline(next => OwinHandler));
+  }
+            
+
+ public Task OwinHandler(IDictionary<string, object> environment)
+{
+     string responseText = "Hello World via OWIN";
+     byte[] responseBytes = Encoding.UTF8.GetBytes(responseText);
+
+    // OWIN Environment Keys: http://owin.org/spec/spec/owin-1.0.0.html
+
+    var requestMethod = (string) environment["owin.RequestMethod"];
+    var requestScheme = (string) environment["owin.RequestScheme"];
+    var requestHeaders = (IDictionary<string, string[]>)environment["owin.RequestHeaders"];
+    var requestQueryString = (string) environment["owin.RequestQueryString"];         
+
+    var responseStream = (Stream)environment["owin.ResponseBody"];
+
+    var responseHeaders = (IDictionary<string, string[]>)environment["owin.ResponseHeaders"];
+
+    responseHeaders["Content-Length"] = new string[] { responseBytes.Length.ToString(CultureInfo.InvariantCulture) };
+    responseHeaders["Content-Type"] = new string[] { "text/plain" };
+
+    return responseStream.WriteAsync(responseBytes, 0, responseBytes.Length);
+}
+
+~~~
